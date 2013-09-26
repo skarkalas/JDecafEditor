@@ -2,6 +2,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
@@ -301,7 +304,16 @@ public class JDecaf extends JFrame
       this.setResizable(false);
       this.setAppTitle("");
       
-      this.addWindowListener(new WindowEventHandler());
+      this.addWindowListener(new WindowAdapter()
+  	  {
+			public void windowClosing(WindowEvent e)
+			{
+				Timestamp timestamp = getTimestamp();
+				updateActivity(timestamp);
+				System.exit(0);
+			}
+	  });
+	  
 //    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       this.pack();
       this.setLocationRelativeTo(null);
