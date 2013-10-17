@@ -182,7 +182,7 @@ public class JDecaf extends JFrame
       textArea.setAntiAliasingEnabled(true);
       
       textArea.getDocument().addDocumentListener(new DocumentListener()
-      {
+		{
     	  public void changedUpdate(DocumentEvent e)
     	  {
     		  //markChange();
@@ -191,61 +191,24 @@ public class JDecaf extends JFrame
     	  public void removeUpdate(DocumentEvent e)
     	  {
     		  markChange();
-    		  handleActivity();
+    		  (new ActivityTask("(task) user activity tracker")).start();
     	  }
 
     	  public void insertUpdate(DocumentEvent e)
     	  {
     		  markChange();
-    		  handleActivity();
+    		  (new ActivityTask("(task) user activity tracker")).start();
     	  }
 
 		  public void markChange()
 		  {
 			  textArea.setContentChanged(true);
 			  JDecaf.this.setAppTitle("*");
-		  } 
-		  
-		  public void handleActivity()
-		  {
-				Timestamp newTimestamp = getTimestamp();		
-
-				synchronized(JDecaf.this)
-				{
-					//initialise the start time if applicable
-					if(startTime==null)
-					{
-						startTime=newTimestamp;
-					}
-					
-					boolean update=false;
-
-					if(charsInserted==0)
-					{
-						update=updateActivity(newTimestamp);
-
-						if(!update)
-						{
-							System.out.println("update activity - not successful");						
-						}
-					}
-					
-					//update the counter
-					charsInserted++;		
-
-					//update the timestamp
-					timeStamp=newTimestamp;
-					
-					if(update)
-					{
-						System.out.println(timeStamp.toString());
-					}
-				}		
-			}
+		  } 		  
       });
       
 	  timer=new Timer();
-	  timer.schedule(new Task("(task) user activity tracker"), 0, checkTimeInterval);
+	  timer.schedule(new InactivityTask("(task) user inactivity tracker"), 0, checkTimeInterval);
       
       RTextScrollPane editorPane = new RTextScrollPane(textArea);
       editorPane.setFoldIndicatorEnabled(true);
@@ -347,16 +310,15 @@ public class JDecaf extends JFrame
 		return new Timestamp(date.getTime());
 	}
    
-   class Task extends TimerTask
+   class InactivityTask extends TimerTask
    {
-
 	   	private String name;                 // A string to output
 	
 	   	/**
 	   	* Constructs the object, sets the string to be output in function run()
 	   	* @param str
 	   	*/
-	   	Task(String name)
+	   	InactivityTask(String name)
 	   	{
 	   		this.name = name;
 	   	}
@@ -389,6 +351,57 @@ public class JDecaf extends JFrame
 	   				}
 	   			}
 	   		}
+	   	}
+   }
+   
+     class ActivityTask extends Thread
+   {
+	   	private String name;                 // A string to output
+	
+	   	/**
+	   	* Constructs the object, sets the string to be output in function run()
+	   	* @param name
+	   	*/
+	   	ActivityTask(String name)
+	   	{
+	   		this.name = name;
+	   	}
+	
+	   	public void run()
+	   	{
+			synchronized(JDecaf.this)
+			{
+				Timestamp newTimestamp = getTimestamp();		
+
+				//initialise the start time if applicable
+				if(startTime==null)
+				{
+					startTime=newTimestamp;
+				}
+				
+				boolean update=false;
+
+				if(charsInserted==0)
+				{
+					update=updateActivity(newTimestamp);
+
+					if(!update)
+					{
+						System.out.println("update activity - not successful");						
+					}
+				}
+				
+				//update the counter
+				charsInserted++;		
+
+				//update the timestamp
+				timeStamp=newTimestamp;
+				
+				if(update)
+				{
+					System.out.println(timeStamp.toString());
+				}
+			}		
 	   	}
    }
 }
